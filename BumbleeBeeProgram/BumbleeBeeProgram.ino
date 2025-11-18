@@ -16,6 +16,13 @@
 #define IN3 12   // Right motor direction
 #define IN4 8
 
+#define ir1 A0
+#define ir2 A1
+#define ir3 A2
+#define ir4 A3
+#define ir5 A4
+
+int DefaultSpeed = 150;
 
 Servo ultrasonicServo;
 
@@ -26,6 +33,11 @@ void setup() {
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
+  pinMode(ir1, INPUT);
+  pinMode(ir2, INPUT);
+  pinMode(ir3, INPUT);
+  pinMode(ir4, INPUT);
+  pinMode(ir5, INPUT);
   Serial.begin(9600);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
@@ -96,7 +108,6 @@ void turnRight(int speed)
   analogWrite(ENA, speed);
 }
 
-
 void stopCar() {
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
@@ -128,15 +139,17 @@ void obstacleAvoidance()
   stopCar();
   delay(500);
   turnLeft(200);
-  delay(1500);
+  delay(700);
   double LeftDist = measureDistanceCM();
   stopCar();
   delay(500);
   turnRight(200);
-  delay(3000);
+  delay(1400);
   double RightDist = measureDistanceCM();
   stopCar();
   delay(500);
+  turnLeft(200);
+  delay(700);
 
   if (RightDist > LeftDist)
   {
@@ -147,107 +160,102 @@ void obstacleAvoidance()
     turnLeft(200);
   }
 
-  delay(1500);
+  delay(700);
   stopCar();
   delay(500);
+}
+
+int lineTracking(int s1, int s2, int s3, int s4, int s5)
+{
+  int MoveDelay = 0;
+  if((s1 == 1) && (s2 == 0) && (s3 == 0) && (s4 == 0) && (s5 == 1))
+  {
+    Serial.println("Line tracking");
+    moveForward(DefaultSpeed);
+    return 1;
+  }
+  else if ((s1 == 1) && (s2 == 1) && (s3 == 1) && (s4 == 0) && (s5 == 0))
+  {
+    Serial.println("Line tracking turn Right minor 3");
+    turnRight(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }
+  else if ((s1 == 0) && (s2 == 0) && (s3 == 1) && (s4 == 1) && (s5 == 1))
+  {
+    Serial.println("Line tracking turn left minor 3");
+    turnLeft(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }
+  else if ((s1 == 0) && (s2 == 0) && (s3 == 0) && (s4 == 1) && (s5 == 1))
+  {
+    Serial.println("Line tracking turn left minor 3");
+    turnLeft(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }
+  else if ((s1 == 1) && (s2 == 0) && (s3 == 0) && (s4 == 0) && (s5 == 0))
+  {
+    Serial.println("Line tracking turn Right minor");
+    turnRight(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }
+  else if ((s1 == 0) && (s2 == 0) && (s3 == 0) && (s4 == 0) && (s5 == 1))
+  {
+    Serial.println("Line tracking turn left minor 1");
+    turnLeft(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }
+  else if ((s1 == 0) && (s2 == 1) && (s3 == 1) && (s4 == 1) && (s5 == 1))
+  {
+    Serial.println("Line tracking turn left minor 2");
+    turnLeft(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }
+  else if ((s1 == 1) && (s2 == 1) && (s3 == 1) && (s4 == 1) && (s5 == 0))
+  {
+    Serial.println("Line tracking turn right minor 2");
+    turnRight(DefaultSpeed);
+    delay(MoveDelay);
+    return 1;
+  }  
+  else if ((s1 == 0) && (s2 == 0) && (s3 == 0) && (s4 == 0) && (s5 == 0))
+  {
+    Serial.println("Line tracking turning right major");
+    turnRight(DefaultSpeed);
+    delay(200);
+    return 1;
+  }
+  return 0;
 }
 
 
 void loop()
 {
-    delay(300);  // wait for servo to move
+    //Reading Sensor Values
+    int s1 = digitalRead(ir1);  //Left Most Sensor
+    int s2 = digitalRead(ir2);  //Left Sensor
+    int s3 = digitalRead(ir3);  //Middle Sensor
+    int s4 = digitalRead(ir4);  //Right Sensor
+    int s5 = digitalRead(ir5);  //Right Most Sensor
     
     double dist = measureDistanceCM();
     Serial.print(": ");
+    int LineTracking = lineTracking(s1, s2, s3, s4, s5);
     if (dist < 0) {
       Serial.println("Out of range");
-    } else {
-      Serial.print(dist);
-      Serial.println(" cm");
-      bool Move = true;
-      if (dist > 10)
-      {
-        moveForward(200);
-      }
-      else
-      {
-        obstacleAvoidance();
-      }
+    }
+    else if (dist > 5 && LineTracking == 0)
+    {
+      Serial.println("MovingForward");
+      moveForward(DefaultSpeed);
+    }
+    else if (LineTracking == 0 && dist < 5) {
+      Serial.println("Avoiding");
+      //obstacleAvoidance();
     }
 }
-
-/**void turnLeft(int speed)
-{
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENA, speed*100);
-  analogWrite(ENB, 0);
-}
-
-void turnRight(int speed)
-{
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  analogWrite(ENA, speed);
-  analogWrite(ENB, speed*5);
-}
-
-long measureDistanceCM() {
-  // Send trigger pulse
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(5);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  // Read the echo pulse width
-  double duration = pulseIn(ECHO_PIN, HIGH, 30000);  // timeout ~30ms
-  if (duration == 0) {
-    // no echo (out of range)
-    return -1;
-  }
-  // Convert to distance (cm)
-  double distance = duration / 58.0;
-  return distance;
-}
-
-void stopCar() {
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
-}
-
-void loop() {
-  // Optionally scan a few directions
-  int scanAngles[] = {60, 90, 120};  // left, center, right
-  for (int i = 0; i < 3; i++) {
-    ultrasonicServo.write(scanAngles[i]);
-    delay(300);  // wait for servo to move
-    
-    double dist = measureDistanceCM();
-    Serial.print("Angle ");
-    Serial.print(scanAngles[i]);
-    Serial.print(": ");
-    if (dist < 0) {
-      Serial.println("Out of range");
-    } else {
-      Serial.print(dist);
-      Serial.println(" cm");
-      bool Move = true;
-      if (Move)
-      {
-        turnLeft(500);
-      }
-      else
-      {
-        stopCar();
-      }
-    }
-  }
-
-  // Add logic: if any distance < threshold, take avoidance action
-  delay(500);
-}**/
