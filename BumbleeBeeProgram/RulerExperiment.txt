@@ -1,5 +1,9 @@
-Rule: 22.5 cm Sensory: 21 cm
-Rule: 28 cm Sensor: 28 cm
-Rule: 56 cm Sensor: 51 cm
+Rule:30 Sensor: 29.75 cm
+Rule:25 Sensor: 24.71
+Rule:20 Sensor: 20.98
+Rule:15 Sensor:15.48
+Rule:10 Sensor: 9.81
+Rule:5 Sensor: 5.43
+
 
 
