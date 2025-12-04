@@ -14,12 +14,15 @@
 
 #define IN3 12   // Right motor direction
 #define IN4 8
-
+#define SERVO_PIN 9
 #define ir1 A0
 #define ir2 A1
 #define ir3 A2
 #define ir4 A3
 #define ir5 A4
+Servo head;
+
+int a = -1;
 
 int DefaultSpeed = 150;
 
@@ -45,6 +48,8 @@ void setup() {
   // Optionally center the servo at start
   ultrasonicServo.write(90);  // middle
   delay(500);
+
+  head.attach(9);
 }
 
 void moveForward(int speed) {
@@ -146,18 +151,28 @@ double measureDistanceCM() {
   return distance;
 }
 
+
+void handTrack(){
+  double dist = measureDistanceCM();
+  if (dist > 10){
+    moveForward(200);
+  }
+  else{
+    moveReverse(200);
+  }
+}
 void obstacleAvoidance()
 {
   moveReverse(200);
   delay(500);
   stopCar();
   delay(500);
-  turnLeft(200);
+  turnLeft(50);
   delay(700);
   double LeftDist = measureDistanceCM();
   stopCar();
   delay(500);
-  turnRight(200);
+  turnRight(100);
   delay(1400);
   double RightDist = measureDistanceCM();
   stopCar();
@@ -179,6 +194,53 @@ void obstacleAvoidance()
   delay(500);
 }
 
+int full_turn(int speed){
+  turn(50,speed);
+  delay(700);
+}
+
+/**
+
+void cleaner(int s1, int s2, int s3, int s4, int s5) {
+    // Convert white=1 → 0, black=0 → 1
+    int s[5] = { !s1, !s2, !s3, !s4, !s5 };
+
+    // ===== BOUNDARY FOLLOWING LOGIC =====
+
+    // Left side sees black → you’re touching the wall → turn RIGHT
+    if (s[0] == 1 || s[1] == 1) {
+        turn(200, -200);   // sharp right
+        delay(200);
+        return;
+    }
+
+    // Front sees black → you're going to cross the border → reverse & turn
+    if (s[2] == 1) {
+        moveReverse(150);
+        delay(250);
+        turn(-200, 200);   // turn left to stay inside
+        delay(300);
+        return;
+    }
+
+    // Right side sees black → wall on your right → turn LEFT
+    if (s[3] == 1 || s[4] == 1) {
+        turn(-200, 200);   // sharp left
+        delay(200);
+        return;
+    }
+
+    // No black = interior → move randomly to cover the area
+    moveForward(100);
+}
+*/
+
+
+
+int cleaner(){
+  turn(200, -200);
+
+}
 int lineTracking(int s1, int s2, int s3, int s4, int s5)
 {
     // Convert: white=1 -> 0, black=0 -> 1
@@ -199,10 +261,13 @@ int lineTracking(int s1, int s2, int s3, int s4, int s5)
         error += s[i] * w[i];
 
     // Base speed
-    int base = 100;
+    int base = 120;
+    
+      
+    
 
     // Steering gain
-    int K = 40;
+    int K = 50;
 
     // Determine motor speeds
     int left  = base + error * K;
@@ -233,16 +298,40 @@ void loop()
     int s4 = digitalRead(ir4);
     int s5 = digitalRead(ir5);
   
+   
+  
 
     double dist = measureDistanceCM();
+    //cleaner(s1,s2,s3, s4,s5);
+    //handTrack();
     //Serial.println(dist);
-
-    if (dist > 0 && dist < 10)
+    //lineTracking(s1, s2, s3, s4, s5);
+   
+    if (dist > 0 && dist < 25)
     {
-      obstacleAvoidance();
+      //moveReverse(50);
+      //delay(200);
+      if(a == -1){
+        a = random(0,2);
+      }
+     
+      Serial.println(a);
+
+      if (a == 0){
+        turn(0,500);
+      }
+      else{
+        turn(500,0);
+      }
+    
+      //delay(200);
     }
     else
     {
+      a = -1;
       lineTracking(s1, s2, s3, s4, s5);
     }
+  
+  
+
 }
