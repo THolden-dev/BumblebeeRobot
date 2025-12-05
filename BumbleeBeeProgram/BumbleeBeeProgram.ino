@@ -52,50 +52,6 @@ void setup() {
   head.attach(9);
 }
 
-void moveForward(int speed) {
-  #define IN1 7   // Left motor direction
-  #define IN2 11
-
-  #define IN3 12   // Right motor direction
-  #define IN4 8
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENA, speed);
-  analogWrite(ENB, speed);
-}
-
-void moveReverse(int speed) {
-  #define IN1 7   // Left motor direction
-  #define IN2 11
-
-  #define IN3 12  // Right motor direction
-  #define IN4 8
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  analogWrite(ENA, speed);
-  analogWrite(ENB, speed);
-}
-
-void turnLeft(int speed)
-{
-  #define IN1 7   // Left motor direction
-  #define IN2 11
-
-  #define IN3 12  // Right motor direction
-  #define IN4 8
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN4, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  
-  analogWrite(ENB, speed);
-  analogWrite(ENA, speed);
-}
-
 void turn(int speedL, int speedR)
 {
     #define IN1 7   // Left motor direction
@@ -109,27 +65,6 @@ void turn(int speedL, int speedR)
     digitalWrite(IN4, LOW);
     analogWrite(ENA, speedL);
     analogWrite(ENB, speedR);
-}
-
-void turnRight(int speed)
-{
-  #define IN1 7   // Left motor direction
-  #define IN2 11
-
-  #define IN3 12  // Right motor direction
-  #define IN4 8
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN4, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-
-  analogWrite(ENB, speed);
-  analogWrite(ENA, speed);
-}
-
-void stopCar() {
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
 }
 
 double measureDistanceCM() {
@@ -152,95 +87,6 @@ double measureDistanceCM() {
 }
 
 
-void handTrack(){
-  double dist = measureDistanceCM();
-  if (dist > 10){
-    moveForward(200);
-  }
-  else{
-    moveReverse(200);
-  }
-}
-void obstacleAvoidance()
-{
-  moveReverse(200);
-  delay(500);
-  stopCar();
-  delay(500);
-  turnLeft(50);
-  delay(700);
-  double LeftDist = measureDistanceCM();
-  stopCar();
-  delay(500);
-  turnRight(100);
-  delay(1400);
-  double RightDist = measureDistanceCM();
-  stopCar();
-  delay(500);
-  turnLeft(200);
-  delay(700);
-
-  if (RightDist > LeftDist)
-  {
-    turnRight(200);
-  }
-  else
-  {
-    turnLeft(200);
-  }
-
-  delay(700);
-  stopCar();
-  delay(500);
-}
-
-int full_turn(int speed){
-  turn(50,speed);
-  delay(700);
-}
-
-/**
-
-void cleaner(int s1, int s2, int s3, int s4, int s5) {
-    // Convert white=1 → 0, black=0 → 1
-    int s[5] = { !s1, !s2, !s3, !s4, !s5 };
-
-    // ===== BOUNDARY FOLLOWING LOGIC =====
-
-    // Left side sees black → you’re touching the wall → turn RIGHT
-    if (s[0] == 1 || s[1] == 1) {
-        turn(200, -200);   // sharp right
-        delay(200);
-        return;
-    }
-
-    // Front sees black → you're going to cross the border → reverse & turn
-    if (s[2] == 1) {
-        moveReverse(150);
-        delay(250);
-        turn(-200, 200);   // turn left to stay inside
-        delay(300);
-        return;
-    }
-
-    // Right side sees black → wall on your right → turn LEFT
-    if (s[3] == 1 || s[4] == 1) {
-        turn(-200, 200);   // sharp left
-        delay(200);
-        return;
-    }
-
-    // No black = interior → move randomly to cover the area
-    moveForward(100);
-}
-*/
-
-
-
-int cleaner(){
-  turn(200, -200);
-
-}
 int lineTracking(int s1, int s2, int s3, int s4, int s5)
 {
     // Convert: white=1 -> 0, black=0 -> 1
@@ -302,15 +148,10 @@ void loop()
   
 
     double dist = measureDistanceCM();
-    //cleaner(s1,s2,s3, s4,s5);
-    //handTrack();
-    //Serial.println(dist);
-    //lineTracking(s1, s2, s3, s4, s5);
    
     if (dist > 0 && dist < 25)
     {
-      //moveReverse(50);
-      //delay(200);
+      
       if(a == -1){
         a = random(0,2);
       }
@@ -324,7 +165,7 @@ void loop()
         turn(500,0);
       }
     
-      //delay(200);
+      
     }
     else
     {
