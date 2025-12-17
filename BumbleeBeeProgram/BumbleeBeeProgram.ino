@@ -28,6 +28,10 @@ int DefaultSpeed = 150;
 
 Servo ultrasonicServo;
 
+int LineTracking = 0;
+
+int Direction = 0; //-1 right 1 left
+
 void setup() {
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
@@ -63,9 +67,12 @@ void turn(int speedL, int speedR)
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, HIGH);
     digitalWrite(IN4, LOW);
+    
     analogWrite(ENA, speedL);
     analogWrite(ENB, speedR);
 }
+
+
 
 double measureDistanceCM() {
   // Send trigger pulse
@@ -86,7 +93,6 @@ double measureDistanceCM() {
   return distance;
 }
 
-
 int lineTracking(int s1, int s2, int s3, int s4, int s5)
 {
     // Convert: white=1 -> 0, black=0 -> 1
@@ -97,7 +103,15 @@ int lineTracking(int s1, int s2, int s3, int s4, int s5)
         !s4,
         !s5
     };
-
+    if (s1 == 1 || s2 == 1 || s3 == 1 || s4 == 1 || s5 == 1)
+    {
+      LineTracking = 1;
+      Direction = 0;
+    }
+    else
+    {
+      LineTracking = 0;
+    }
     // Weights: left negative, right positive
     int w[5] = {-2, -1, 0, 1, 2};
 
@@ -160,19 +174,31 @@ void loop()
 
       if (a == 0){
         turn(0,500);
+        Direction = 1;
       }
       else{
         turn(500,0);
+        Direction = -1;
       }
-    
+
+      LineTracking = 0;
       
     }
-    else
+    else if (LineTracking == 0 && Direction == -1 || Direction == 1)
     {
+      if (Direction == 1)
+      {+
+        turn(500,0);
+      }
+      else if (Direction == -1)
+      {
+        turn(0,500);
+      }
+    }
+    else {
       a = -1;
+    }
+    if (dist > 25 ){
       lineTracking(s1, s2, s3, s4, s5);
     }
-  
-  
-
 }
